@@ -6,6 +6,7 @@
   "author": "Jess Perina",
   "license": "MIT",
   "dependencies": {
-    "nightmare": "^2.10.0"
+    "nightmare": "^2.10.0",
+    "vo": "^4.0.2"
   }
 }
