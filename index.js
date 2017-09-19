@@ -2,10 +2,13 @@ const Nightmare =  require('nightmare');
 const vo = require('vo');
 const fs = require('fs');
 
+const stopWords = require('./stopWords');
+
 // go to the page
 // select view all reviews
 // loop
   // grab the review text
+  // sort into good and bad reviews
   // if there is a next button click it
 // need to deal with last page (there will be no next button)
 
@@ -19,7 +22,6 @@ function *run() {
 
   let nextExists = true;
   let currPage = 1;
-  let reviews = [];
 
   // go to the page
   // select view all reviews
@@ -36,15 +38,30 @@ function *run() {
     return href.charAt(href.length - 1) !== '#';
   });
 
-  // TODO: currently not getting the last page
+  let reviewCompare = {fresh: {}, rotten: {}};
+
   while (nextExists && currPage <= 12) {
-    // grab the review text
-    reviews.push(yield nightmare
-      .evaluate(() => {
-          let pageReviews = Array.from(document.querySelectorAll('.the_review')).map(el => el.innerText);
-          return pageReviews;
-        })
-    );
+    // grab review text and freshness 
+    // add text to the correct reviewCompare object based on freshnness
+    let reviewName = yield nightmare
+      .evaluate((data) => {
+        Array.from(document.querySelectorAll('.review_container')).forEach(review => {
+          let freshness = review.querySelector('div').getAttribute('class').split(' ')[3];
+          let content = review.getElementsByClassName('the_review')[0].innerText;
+          let words = content.replace(/[.,\/#!$%\^&\*'";:{}=\-_`~()]/g, '').toLowerCase().split(/\s+/);
+
+          for (let i = 0; i < words.length; i++){
+            if (data[freshness].hasOwnProperty(words[i])){
+                data[freshness][words[i]][1]++;
+            } else {
+                data[freshness][words[i]] = [words[i], 1];
+            }
+          }
+        });
+
+        return {data: data};
+      }, reviewCompare);
+  reviewCompare = Object.assign(reviewCompare, reviewName.data);
 
     // if there is a next button click it
     yield nightmare
@@ -60,11 +77,53 @@ function *run() {
 
   yield nightmare.end();
 
+  let commonlyUsedWords = {
+    fresh: [],
+    rotten: []
+  };
+
+  // let commonlyUsedWords = {
+  //   critics: {
+  //     fresh: [],
+  //     rotten: []
+  //   },
+  //   audience: {
+  //     fresh: [],
+  //     rotten: []
+  //   }
+  // }
+
+  // filter out the stop words add non stop words to commonlyUsed words object
+  Object.keys(reviewCompare).forEach(freshness => {
+    Object.values(reviewCompare[freshness]).forEach(word => {
+      let isStopWord = stopWords.includes(word[0]);
+      if (!isStopWord) {
+        commonlyUsedWords[freshness].push(word);
+      }
+    });
+  });
+
+  // sort most commonly used words to the front
+  const sortOccurances = (a, b) => b[1] - a[1];
+
+  let sortedFresh = commonlyUsedWords.fresh.sort(sortOccurances);
+  let sortedRotten = commonlyUsedWords.rotten.sort(sortOccurances);
+
+  let popularWords = {
+    fresh: sortedFresh.slice(0, 16),
+    rotten: sortedRotten.slice(0, 16)
+  };
+
   // for test purposes to better see what the returned text looked like
-  fs.writeFile('reviews.txt', reviews, (err) => {
+  fs.writeFile('reviews.txt', JSON.stringify(popularWords), (err) => {
     if (err) throw err;
     console.log('The file has been saved!');
   });
 
-  console.dir(reviews);
+  console.dir(popularWords);
 }
+
+// things that need to be done:
+  // tweak the stop words for the topic (remove words like film, movie, films, filmmaker, etc.)
+  // need to conditionally remove the names of directors and actors
+  // currently not getting the last page of reviews
