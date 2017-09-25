@@ -18,7 +18,7 @@ vo(run)(function(err, result) {
 
 function *run() {
   const nightmare = Nightmare({ show: true });
-  const movie = 'https://www.rottentomatoes.com/m/mother_2017';
+  const movie = 'https://www.rottentomatoes.com/m/kingsman_the_golden_circle';
 
   let nextExists = true;
   let currPage = 1;
