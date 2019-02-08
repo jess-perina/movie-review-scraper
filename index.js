@@ -23,7 +23,7 @@ vo(run)(function(err, result) {
 
 function *run() {
   const movie = `${rottenTomatoesURL}${movieTitle}`;
-  const reviewCompare = {fresh: {}, rotten: {}};
+  let reviewCompare = {fresh: {}, rotten: {}};
   let nextExists = true;
   let currPage = 1;
 
@@ -40,7 +40,7 @@ function *run() {
     // grab review text and freshness 
     // add text to the correct reviewCompare object based on freshnness
     let reviewName = yield nightmare
-      .evaluate((data) => {
+    .evaluate((data) => {
         Array.from(document.querySelectorAll('.review_container')).forEach(review => {
           let freshness = review.querySelector('div').getAttribute('class').split(' ')[3];
           let content = review.getElementsByClassName('the_review')[0].innerText;
@@ -56,8 +56,8 @@ function *run() {
         });
 
         return {data: data};
-      }, reviewCompare);
-  reviewCompare = Object.assign(reviewCompare, reviewName.data);
+    }, reviewCompare);
+    reviewCompare = Object.assign(reviewCompare, reviewName.data);
 
     // if there is a next button click it
     yield nightmare
@@ -66,7 +66,7 @@ function *run() {
 
     currPage++;
     nextExists = yield checkForValidNextButton();
-
+  }
   yield nightmare.end();
 
   let commonlyUsedWords = {
