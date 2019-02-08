@@ -4,6 +4,10 @@ const fs = require('fs');
 
 const stopWords = require('./stopWords');
 
+const nightmare = Nightmare({ show: true });
+const rottenTomatoesURL = 'https://www.rottentomatoes.com/m/'
+let movieTitle = 'kingsman_the_golden_circle'
+
 // go to the page
 // select view all reviews
 // loop
@@ -17,8 +21,7 @@ vo(run)(function(err, result) {
 });
 
 function *run() {
-  const nightmare = Nightmare({ show: true });
-  const movie = 'https://www.rottentomatoes.com/m/kingsman_the_golden_circle';
+  const movie = `${rottenTomatoesURL}${movieTitle}`;
 
   let nextExists = true;
   let currPage = 1;
