@@ -36,15 +36,15 @@ function *run() {
 
   nextExists = yield checkForValidNextButton();
 
-  while (nextExists && currPage <= 12) {
+  while (nextExists && currPage <= 4) {
     // grab review text and freshness 
     // add text to the correct reviewCompare object based on freshnness
     let reviewName = yield nightmare
     .evaluate((data) => {
         Array.from(document.querySelectorAll('.review_container')).forEach(review => {
-          let freshness = review.querySelector('div').getAttribute('class').split(' ')[3];
-          let content = review.getElementsByClassName('the_review')[0].innerText;
-          let words = content.replace(/[.,\/#!$%\^&\*'";:{}=\-_`~()]/g, '').toLowerCase().split(/\s+/);
+          let freshness = getFreshness(review);
+          let content = getContent(review);
+          let words = getWords(content);
 
           for (let i = 0; i < words.length; i++){
             if (data[freshness].hasOwnProperty(words[i])){
@@ -76,7 +76,7 @@ function *run() {
 
 // checkForValidNextButton returns a boolean indicating if the current page
 // has a valid href leading to the next page
-const checkForValidNextButton = () => {
+function checkForValidNextButton() {
   const result = nightmare.evaluate(() => {
     let href = document.querySelector('span[class="pageInfo"] + a').href;
     return href.charAt(href.length - 1) !== '#';
@@ -84,7 +84,19 @@ const checkForValidNextButton = () => {
   return result
 }
 
-const handleResult = (reviewCompare) => {
+function getFreshness(review) {
+  return review.querySelector('div').getAttribute('class').split(' ')[3];
+}
+
+function getContent(review) {
+  return review.getElementsByClassName('the_review')[0].innerText;
+}
+
+function getWords(content) {
+  return content.replace(/[.,\/#!$%\^&\*'";:{}=\-_`~()]/g, '').toLowerCase().split(/\s+/);
+}
+
+function handleResult(reviewCompare) {
   let commonlyUsedWords = {
     fresh: [],
     rotten: []
@@ -115,7 +127,7 @@ const handleResult = (reviewCompare) => {
   return popularWords;
 }
 
-const filterOutStopWords = (reviews, list) => {
+function filterOutStopWords(reviews, list) {
   Object.keys(reviews).forEach(freshness => {
     Object.values(reviews[freshness]).forEach(word => {
       let isStopWord = checkIfStopWord(word[0])
@@ -126,22 +138,22 @@ const filterOutStopWords = (reviews, list) => {
   });
 }
 
-const checkIfStopWord = (word) => {
+function checkIfStopWord(word) {
   return stopWords.includes(word);
 }
 
-const addWordToList = (list, word) => {
+function addWordToList(list, word) {
   list.push(word)
-}
-
-const sortReviews = (reviews) => {
-  return reviews.sort(sortOccurances)
 }
 
 // sort most commonly used words to the front
 const sortOccurances = (a, b) => b[1] - a[1];
 
-const getMostPopularWords = (sortedFresh, sortedRotten, quantity) => {
+function sortReviews(reviews) {
+  return reviews.sort(sortOccurances)
+}
+
+function getMostPopularWords(sortedFresh, sortedRotten, quantity) {
   let popularWords = {
     fresh: sortedFresh.slice(0, quantity),
     rotten: sortedRotten.slice(0, quantity)
@@ -149,7 +161,7 @@ const getMostPopularWords = (sortedFresh, sortedRotten, quantity) => {
   return popularWords
 }
 
-const writeResultToFile = (fileName, result) => {
+function writeResultToFile(fileName, result) {
   fs.writeFile(fileName, result, (err) => {
     if (err) throw err;
     console.log('The file has been saved!');
