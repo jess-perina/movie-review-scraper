@@ -23,11 +23,11 @@ vo(run)(function(err, result) {
 
 function *run() {
   const movie = `${rottenTomatoesURL}${movieTitle}`;
+  const reviewCompare = {fresh: {}, rotten: {}};
   let nextExists = true;
   let currPage = 1;
 
-  // go to the page
-  // select view all reviews
+  // go to the page and select view all reviews
   yield nightmare
   .goto(movie)
   .wait(500)
@@ -35,8 +35,6 @@ function *run() {
   .wait('body');
 
   nextExists = yield checkForValidNextButton();
-
-  let reviewCompare = {fresh: {}, rotten: {}};
 
   while (nextExists && currPage <= 12) {
     // grab review text and freshness 
