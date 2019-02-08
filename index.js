@@ -18,6 +18,7 @@ let movieTitle = 'kingsman_the_golden_circle'
 
 vo(run)(function(err, result) {
   if (err) throw err;
+  console.dir(result);
 });
 
 function *run() {
@@ -123,10 +124,11 @@ function *run() {
     console.log('The file has been saved!');
   });
 
-  console.dir(popularWords);
+  return popularWords;
 }
 
 // things that need to be done:
   // tweak the stop words for the topic (remove words like film, movie, films, filmmaker, etc.)
   // need to conditionally remove the names of directors and actors
   // currently not getting the last page of reviews
+  // pass movie name into function
