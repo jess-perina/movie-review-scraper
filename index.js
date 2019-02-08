@@ -69,6 +69,22 @@ function *run() {
   }
   yield nightmare.end();
 
+  const popularWords = handleResult(reviewCompare);
+
+  return popularWords;
+}
+
+// checkForValidNextButton returns a boolean indicating if the current page
+// has a valid href leading to the next page
+const checkForValidNextButton = () => {
+  const result = nightmare.evaluate(() => {
+    let href = document.querySelector('span[class="pageInfo"] + a').href;
+    return href.charAt(href.length - 1) !== '#';
+  });
+  return result
+}
+
+const handleResult = (reviewCompare) => {
   let commonlyUsedWords = {
     fresh: [],
     rotten: []
@@ -86,43 +102,58 @@ function *run() {
   // }
 
   // filter out the stop words add non stop words to commonlyUsed words object
-  Object.keys(reviewCompare).forEach(freshness => {
-    Object.values(reviewCompare[freshness]).forEach(word => {
-      let isStopWord = stopWords.includes(word[0]);
-      if (!isStopWord) {
-        commonlyUsedWords[freshness].push(word);
-      }
-    });
-  });
+  filterOutStopWords(reviewCompare, commonlyUsedWords)
 
-  // sort most commonly used words to the front
-  const sortOccurances = (a, b) => b[1] - a[1];
+  let sortedFresh = sortReviews(commonlyUsedWords.fresh);
+  let sortedRotten = sortReviews(commonlyUsedWords.rotten);
 
-  let sortedFresh = commonlyUsedWords.fresh.sort(sortOccurances);
-  let sortedRotten = commonlyUsedWords.rotten.sort(sortOccurances);
-
-  let popularWords = {
-    fresh: sortedFresh.slice(0, 16),
-    rotten: sortedRotten.slice(0, 16)
-  };
+  let popularWords = getMostPopularWords(sortedFresh, sortedRotten, 16)
 
   // for test purposes to better see what the returned text looked like
-  fs.writeFile('reviews.txt', JSON.stringify(popularWords), (err) => {
-    if (err) throw err;
-    console.log('The file has been saved!');
-  });
+  writeResultToFile('reviews.txt', JSON.stringify(popularWords));
 
   return popularWords;
 }
 
-// checkForValidNextButton returns a boolean indicating if the current page
-// has a valid href leading to the next page
-function checkForValidNextButton() {
-  const result = nightmare.evaluate(() => {
-    let href = document.querySelector('span[class="pageInfo"] + a').href;
-    return href.charAt(href.length - 1) !== '#';
+const filterOutStopWords = (reviews, list) => {
+  Object.keys(reviews).forEach(freshness => {
+    Object.values(reviews[freshness]).forEach(word => {
+      let isStopWord = checkIfStopWord(word[0])
+      if (!isStopWord) {
+        addWordToList(list[freshness], word);
+      }
+    });
   });
-  return result
+}
+
+const checkIfStopWord = (word) => {
+  return stopWords.includes(word);
+}
+
+const addWordToList = (list, word) => {
+  list.push(word)
+}
+
+const sortReviews = (reviews) => {
+  return reviews.sort(sortOccurances)
+}
+
+// sort most commonly used words to the front
+const sortOccurances = (a, b) => b[1] - a[1];
+
+const getMostPopularWords = (sortedFresh, sortedRotten, quantity) => {
+  let popularWords = {
+    fresh: sortedFresh.slice(0, quantity),
+    rotten: sortedRotten.slice(0, quantity)
+  };
+  return popularWords
+}
+
+const writeResultToFile = (fileName, result) => {
+  fs.writeFile(fileName, result, (err) => {
+    if (err) throw err;
+    console.log('The file has been saved!');
+  });
 }
 
 // things that need to be done:
