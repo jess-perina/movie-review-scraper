@@ -23,7 +23,6 @@ vo(run)(function(err, result) {
 
 function *run() {
   const movie = `${rottenTomatoesURL}${movieTitle}`;
-
   let nextExists = true;
   let currPage = 1;
 
@@ -35,12 +34,7 @@ function *run() {
   .click('.view_all_critic_reviews')
   .wait('body');
 
-  // extract this into s function (I think nightmare calls it an action)
-  // check to see if the next button has a valid href
-  nextExists = yield nightmare.evaluate(() => {
-    let href = document.querySelector('span[class="pageInfo"] + a').href;
-    return href.charAt(href.length - 1) !== '#';
-  });
+  nextExists = yield checkForValidNextButton();
 
   let reviewCompare = {fresh: {}, rotten: {}};
 
@@ -73,11 +67,7 @@ function *run() {
     .wait('body');
 
     currPage++;
-    nextExists = yield nightmare.evaluate(() => {
-      let href = document.querySelector('span[class="pageInfo"] + a').href;
-      return href.charAt(href.length - 1) !== '#';
-    });
-  }
+    nextExists = yield checkForValidNextButton();
 
   yield nightmare.end();
 
@@ -125,6 +115,16 @@ function *run() {
   });
 
   return popularWords;
+}
+
+// checkForValidNextButton returns a boolean indicating if the current page
+// has a valid href leading to the next page
+function checkForValidNextButton() {
+  const result = nightmare.evaluate(() => {
+    let href = document.querySelector('span[class="pageInfo"] + a').href;
+    return href.charAt(href.length - 1) !== '#';
+  });
+  return result
 }
 
 // things that need to be done:
