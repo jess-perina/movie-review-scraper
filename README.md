@@ -21,7 +21,7 @@ $ npm install
 2. Go to index.js file and pass a movie title into the scraper
 
 ```
-const movieTitle = 'hustlers_2019'
+const movieTitle = 'kingsman_the_golden_circle'
 ```
 
 If you're looking for current movie options or titles run the following to see a list of movies opening this week and movies topping the box office
