@@ -11,7 +11,7 @@ const nightmare = Nightmare({
   show: true
 })
 const rottenTomatoesURL = 'https://www.rottentomatoes.com/m/'
-let movieTitle = 'hustlers_2019'
+const movieTitle = 'hustlers_2019'
 
 // go to the page
 // select view all reviews
