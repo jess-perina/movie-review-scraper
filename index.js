@@ -26,7 +26,7 @@ vo(run)(function(err, result) {
   console.dir(result)
 })
 
-function* run() {
+function *run() {
   const movie = `${rottenTomatoesURL}${movieTitle}`
   let reviewCompare = { fresh: {}, rotten: {} }
   let nextExists = true
@@ -92,7 +92,7 @@ function handleReviews(reviewCompare) {
           .split(' ')[3]
         let content = review.getElementsByClassName('the_review')[0].innerText
         let words = content
-          .replace(/[.,\/#!$%\^&\*'";:{}=\-_`~()]/g, '')
+          .replace(/[.,/#!$%^&*'";:{}=\-_`~()]/g, '')
           .toLowerCase()
           .split(/\s+/)
 
@@ -124,7 +124,7 @@ function getContent(review) {
 
 function getWords(content) {
   return content
-    .replace(/[.,\/#!$%\^&\*'";:{}=\-_`~()]/g, '')
+    .replace(/[.,/#!$%^&*'";:{}=\-_`~()]/g, '')
     .toLowerCase()
     .split(/\s+/)
 }
