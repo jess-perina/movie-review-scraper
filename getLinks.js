@@ -1,23 +1,31 @@
-const Nightmare =  require('nightmare');
-const nightmare = Nightmare({ show: false });
+const Nightmare = require('nightmare')
+const nightmare = Nightmare({ show: false })
 
-  // go to the page
-  // gather all the links from top of the box office
+// go to the page
+// gather all the links from top of the box office
 const getLinks = nightmare
   .goto('https://www.rottentomatoes.com')
   .wait('body')
   .evaluate(() => {
-    const gatherLinks = (category) => Array.from(document.getElementById(category).getElementsByClassName('sidebarInTheaterOpening')).map(movie => movie.querySelector('a').href);
+    const gatherLinks = category =>
+      Array.from(
+        document
+          .getElementById(category)
+          .getElementsByClassName('sidebarInTheaterOpening')
+      ).map(movie => movie.querySelector('a').href)
 
-    let openingThisWeek = gatherLinks('homepage-opening-this-week');
-    let topOfTheBoxOffice = gatherLinks('homepage-top-box-office');
+    let openingThisWeek = gatherLinks('homepage-opening-this-week')
+    let topOfTheBoxOffice = gatherLinks('homepage-top-box-office')
 
-    return [openingThisWeek, topOfTheBoxOffice];
+    return [
+      { 'opening this week': openingThisWeek },
+      { 'top of the box office': topOfTheBoxOffice }
+    ]
   })
   .end()
-  .then((result) => {
-    console.log(result);
+  .then(result => {
+    console.log(result)
   })
-  .catch(err => console.error(err));
+  .catch(err => console.error(err))
 
-module.exports = getLinks;
+module.exports = getLinks
